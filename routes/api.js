@@ -13,7 +13,6 @@ module.exports = function (app) {
 
     .post(async function (req, res) {
       let project = req.params.project;
-      const dbName = `${project}Db`;
       if (!req.body.issue_title || !req.body.issue_text || !req.body.created_by) {
         return res.send({ error: 'required field(s) missing' });
       }
@@ -21,6 +20,8 @@ module.exports = function (app) {
         open: true,
         created_on: new Date().toJSON(),
         updated_on: new Date().toJSON(),
+        assigned_to: req.body.assigned_to ? req.body.assigned_to : "",
+        status_text: req.body.status_text ? req.body.status_text : "",
         ...req.body
       };
       const dataStored = await tempDb.addToDb(data, project);
