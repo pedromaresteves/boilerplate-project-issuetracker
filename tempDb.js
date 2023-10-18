@@ -4,8 +4,13 @@ const database = mongoDatabase.main();
 const getData = async (queryParams, project) => {
     const db = await database;
     const collection = await db.collection(`${project}Db`);
-    if (Object.keys(queryParams).length > 0) {
-        queryParams.open = queryParams.open === 'true' ? true : 'false';
+    if (queryParams.open) {
+        if (queryParams.open === "true") {
+            queryParams.open = true;
+        } else {
+            queryParams.open = false;
+        }
+
     }
     const allResults = await collection.find(queryParams).toArray();
     return allResults;
