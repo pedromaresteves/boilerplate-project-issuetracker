@@ -41,6 +41,10 @@ suite('Get Method tests', function () {
         const res = await chai.request(server).get('/api/issues/getTesting');
         assert.equal(res.statusCode, 200);
     });
+    test('Siew issues on a project with one filter', async function () {
+        const res = await chai.request(server).get('/api/issues/getTesting?open=true');
+        assert.equal(res.statusCode, 200);
+    });
     test('Should get issues according to filters', async function () {
         const res = await chai.request(server).get('/api/issues/getTesting?open=true&assigned_to=Luigi Bro');
         assert.equal(res.statusCode, 200);
@@ -54,6 +58,22 @@ suite('Get Method tests', function () {
 });
 
 suite('Put Method tests', function () {
+    test('Should update an a field on a issue', async function () {
+        const res = await chai.request(server).put('/api/issues/getTesting').type("application/json").send({
+            _id: "652c4c03b2277955e25b2d61",
+            issue_title: 'Dang!',
+        });
+        assert.equal(res.statusCode, 200);
+        assert.deepEqual(res.text, JSON.stringify({ result: 'successfully updated', '_id': "652c4c03b2277955e25b2d61" }));
+        await chai.request(server).put('/api/issues/getTesting').type("application/json").send({
+            _id: "652c4c03b2277955e25b2d61",
+            issue_title: 'Mario Bro',
+            issue_text: 'Description',
+            created_by: 'Mario Bro',
+            assigned_to: 'Luigi Bro',
+            status_text: 'QA'
+        });
+    });
     test('Should update an issue', async function () {
         const res = await chai.request(server).put('/api/issues/getTesting').type("application/json").send({
             _id: "652c4c03b2277955e25b2d61",
@@ -110,5 +130,18 @@ suite('Delete Method tests', function () {
         })
         assert.equal(res.statusCode, 200);
         assert.deepEqual(res.text, JSON.stringify({ result: 'successfully deleted', '_id': firstItem._id }));
+    });
+    test('Should return error if ID is not valid', async function () {
+        const _id = "000c0c00b0000000e00b0d00";
+        const res = await chai.request(server).delete('/api/issues/postTesting').type("application/json").send({
+            _id: _id
+        })
+        assert.equal(res.statusCode, 200);
+        assert.deepEqual(res.text, JSON.stringify({ error: 'could not delete', '_id': _id }));
+    });
+    test('Should return error if ID is not sent', async function () {
+        const res = await chai.request(server).delete('/api/issues/postTesting').type("application/json").send()
+        assert.equal(res.statusCode, 200);
+        assert.deepEqual(res.text, JSON.stringify({ error: 'missing _id' }));
     });
 });
