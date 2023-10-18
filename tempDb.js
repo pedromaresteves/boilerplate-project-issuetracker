@@ -10,8 +10,8 @@ const getData = async (queryParams, project) => {
         } else {
             queryParams.open = false;
         }
-
     }
+    if (queryParams._id) queryParams._id = new ObjectId(queryParams._id);
     const allResults = await collection.find(queryParams).toArray();
     return allResults;
 }
