@@ -1,16 +1,17 @@
 'use strict';
 const tempDb = require('../tempDb');
+
+
 module.exports = function (app) {
   app.route('/api/issues/:project')
 
-    .get(function (req, res) {
+    .get(async function (req, res) {
       let project = req.params.project;
-      const dbName = `${project}Db`;
-      const results = tempDb.getData(tempDb[dbName], req.query)
+      const results = await tempDb.getData(req.query, project)
       return res.send(results);
     })
 
-    .post(function (req, res) {
+    .post(async function (req, res) {
       let project = req.params.project;
       const dbName = `${project}Db`;
       if (!req.body.issue_title || !req.body.issue_text || !req.body.created_by) {
@@ -22,26 +23,24 @@ module.exports = function (app) {
         updated_on: new Date().toJSON(),
         ...req.body
       };
-      const dataStored = tempDb.addToDb(data, tempDb[dbName], dbName);
+      const dataStored = await tempDb.addToDb(data, project);
       return res.send(dataStored);
     })
 
-    .put(function (req, res) {
+    .put(async function (req, res) {
       let project = req.params.project;
-      const dbName = `${project}Db`;
       if (!req.body._id) return res.send({ error: 'missing _id' })
       if (Object.keys(req.body).length < 2) { return res.send({ error: 'no update field(s) sent', '_id': req.body._id }) }
-      const updateSuccessful = tempDb.updateDbItem(req.body, tempDb[dbName]);
-      if (!updateSuccessful) return res.send({ error: 'could not update', '_id': req.body._id })
+      const updateRes = await tempDb.updateDbItem(req.body, project);
+      if (updateRes.matchedCount <= 0) return res.send({ error: 'could not update', '_id': req.body._id })
       return res.send({ result: 'successfully updated', '_id': req.body._id });
     })
 
     .delete(function (req, res) {
       let project = req.params.project;
-      const dbName = `${project}Db`;
-      if (!req.body._id) return res.send({ error: 'missing _id' })
-      const removalSuccessful = tempDb.removeFromDSB(req.body._id, tempDb[dbName]);
-      if (!removalSuccessful) return res.send({ error: 'could not delete', '_id': req.body._id })
+      if (!req.body._id) return res.send({ error: 'missing _id' });
+      const deleteRes = tempDb.removeFromDSB(req.body._id, project);
+      if (deleteRes.deletedCount <= 0) return res.send({ error: 'could not delete', '_id': req.body._id })
       return res.send({ result: 'successfully deleted', '_id': req.body._id });
     });
 
