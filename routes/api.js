@@ -37,10 +37,10 @@ module.exports = function (app) {
       return res.send({ result: 'successfully updated', '_id': req.body._id });
     })
 
-    .delete(function (req, res) {
+    .delete(async function (req, res) {
       let project = req.params.project;
       if (!req.body._id) return res.send({ error: 'missing _id' });
-      const deleteRes = tempDb.removeFromDSB(req.body._id, project);
+      const deleteRes = await tempDb.removeFromDSB(req.body._id, project);
       if (deleteRes.deletedCount <= 0) return res.send({ error: 'could not delete', '_id': req.body._id })
       return res.send({ result: 'successfully deleted', '_id': req.body._id });
     });
